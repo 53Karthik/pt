@@ -215,6 +215,15 @@ body {
 .swatch.selected { border-color: var(--text); }
 .custom-color { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; color: var(--muted); margin-bottom: 16px; }
 .custom-color input { width: 44px; height: 30px; border: none; background: none; cursor: pointer; }
+.modal-form { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.modal-form select, .modal-form input {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  background: var(--card);
+}
+.modal-form input:focus, .modal-form select:focus { outline: 2px solid var(--green); border-color: transparent; }
 
 /* ===== Toast ===== */
 .toast {

@@ -96,6 +96,17 @@ export default async (req) => {
       return json(publicState(data, meKey));
     }
 
+    if (path === "password" && req.method === "POST") {
+      if (meKey !== "editor") return json({ error: "Only the editor can change passwords" }, 403);
+      if (!["editor", "viewer"].includes(body.target)) return json({ error: "Bad target" }, 400);
+      if (!body.newPass || !String(body.newPass).trim()) return json({ error: "Password can't be empty" }, 400);
+      data.users[body.target].passHash = sha256(body.newPass);
+      for (const [t, k] of Object.entries(data.sessions))
+        if (k === body.target && t !== token) delete data.sessions[t];
+      await store.setJSON("data", data);
+      return json({ ok: true });
+    }
+
     if (path === "color" && req.method === "POST") {
       if (meKey !== "viewer") return json({ error: "Only your friend picks their color" }, 403);
       if (!/^#[0-9a-fA-F]{6}$/.test(body.color || "")) return json({ error: "Bad color" }, 400);

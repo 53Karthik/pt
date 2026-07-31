@@ -115,6 +115,18 @@ const Local = {
     return publicState(d, key);
   },
 
+  async password(b) {
+    const d = this.load();
+    const key = this._auth(d);
+    if (key !== "editor") throw new Error("Only the editor can change passwords");
+    validatePassword(b);
+    d.users[b.target].passHash = await sha256(b.newPass);
+    for (const [t, k] of Object.entries(d.sessions))
+      if (k === b.target && t !== S.token) delete d.sessions[t];
+    this.save(d);
+    return { ok: true };
+  },
+
   async color(b) {
     const d = this.load();
     const key = this._auth(d);
@@ -146,6 +158,10 @@ function validateMark(b) {
   if (b.date < "2026-07-01") throw new Error("Calendar starts July 2026");
   if (b.date > todayKey()) throw new Error("Can't mark future days");
   if (![null, "editor", "viewer"].includes(b.value)) throw new Error("Bad value");
+}
+function validatePassword(b) {
+  if (!["editor", "viewer"].includes(b.target)) throw new Error("Bad target");
+  if (!b.newPass || !String(b.newPass).trim()) throw new Error("Password can't be empty");
 }
 function validateColor(c) {
   if (!/^#[0-9a-fA-F]{6}$/.test(c || "")) throw new Error("Bad color");
@@ -217,6 +233,7 @@ function showApp() {
   badge.textContent = isEditor ? `${S.me.name} · editor` : `${S.me.name} · view only`;
   badge.classList.toggle("viewer", !isEditor);
   $("change-color-btn").classList.toggle("hidden", isEditor);
+  $("pass-btn").classList.toggle("hidden", !isEditor);
   $("edit-hint").textContent = isEditor
     ? "Tap a day to cycle: blank → your green → friend's color → blank. Blank = draw / not played."
     : "View-only: your friend marks the wins.";
@@ -358,6 +375,32 @@ $("save-color").addEventListener("click", async () => {
     toast("Color saved!");
   } catch (e) {
     toast(e.message);
+  }
+});
+
+/* ---------------- Password modal (editor only) ---------------- */
+
+$("pass-btn").addEventListener("click", () => {
+  $("pass-target").innerHTML = `
+    <option value="viewer">${escapeHtml(S.users.viewer.name)} (friend)</option>
+    <option value="editor">${escapeHtml(S.users.editor.name)} (you)</option>
+  `;
+  $("pass-new").value = "";
+  $("pass-err").textContent = "";
+  $("pass-modal").classList.remove("hidden");
+});
+
+$("pass-cancel").addEventListener("click", () => $("pass-modal").classList.add("hidden"));
+
+$("pass-save").addEventListener("click", async () => {
+  $("pass-err").textContent = "";
+  try {
+    const target = $("pass-target").value;
+    await call("password", { target, newPass: $("pass-new").value });
+    $("pass-modal").classList.add("hidden");
+    toast(`Password updated for ${S.users[target].name}`);
+  } catch (e) {
+    $("pass-err").textContent = e.message;
   }
 });
 
