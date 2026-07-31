@@ -1,0 +1,9 @@
+{
+  "name": "puzzle-duel-calendar",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LinkedIn puzzle win tracker — 6 calendars, 2 players, 2 colors",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

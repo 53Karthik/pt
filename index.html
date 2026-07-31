@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Puzzle Duel Calendar</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===== Auth screens ===== -->
+  <div id="auth-screen" class="auth-wrap hidden">
+
+    <div class="auth-card" id="setup-card">
+      <h1>🏆 Puzzle Duel</h1>
+      <p class="muted">First-time setup — create the two accounts. You are the <b>editor</b>, your friend is the <b>viewer</b>.</p>
+      <form id="setup-form">
+        <fieldset>
+          <legend>You (editor — green)</legend>
+          <input id="su-owner-name" placeholder="Your name" required autocomplete="off" />
+          <input id="su-owner-pass" type="password" placeholder="Your password" required />
+        </fieldset>
+        <fieldset>
+          <legend>Your friend (viewer)</legend>
+          <input id="su-friend-name" placeholder="Friend's name" required autocomplete="off" />
+          <input id="su-friend-pass" type="password" placeholder="Friend's password (share it with them)" required />
+        </fieldset>
+        <button type="submit" class="btn primary">Create &amp; start</button>
+        <p class="err" id="setup-err"></p>
+      </form>
+    </div>
+
+    <div class="auth-card hidden" id="login-card">
+      <h1>🏆 Puzzle Duel</h1>
+      <p class="muted">Log in to see the calendars.</p>
+      <form id="login-form">
+        <input id="li-name" placeholder="Name" required autocomplete="username" />
+        <input id="li-pass" type="password" placeholder="Password" required autocomplete="current-password" />
+        <button type="submit" class="btn primary">Log in</button>
+        <p class="err" id="login-err"></p>
+      </form>
+    </div>
+
+    <p class="mode-note" id="mode-note"></p>
+  </div>
+
+  <!-- ===== Main app ===== -->
+  <div id="app-screen" class="hidden">
+    <header class="topbar">
+      <div class="brand">🏆 Puzzle Duel</div>
+      <div class="top-actions">
+        <span id="role-badge" class="badge"></span>
+        <button id="change-color-btn" class="btn small hidden">My color</button>
+        <button id="refresh-btn" class="btn small" title="Refresh">⟳</button>
+        <button id="logout-btn" class="btn small">Log out</button>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="controls">
+        <label class="select-wrap">
+          <span class="lbl">Game</span>
+          <select id="game-select"></select>
+        </label>
+        <div class="month-nav">
+          <button id="prev-month" class="btn small">‹</button>
+          <span id="month-label"></span>
+          <button id="next-month" class="btn small">›</button>
+        </div>
+      </section>
+
+      <section class="scores">
+        <div class="score-card">
+          <div class="score-title" id="score-game-title">Game</div>
+          <div class="score-line" id="score-game"></div>
+        </div>
+        <div class="score-card">
+          <div class="score-title">Overall (all 6 games)</div>
+          <div class="score-line" id="score-total"></div>
+        </div>
+      </section>
+
+      <section class="legend" id="legend"></section>
+
+      <section class="calendar-card">
+        <div class="weekdays" id="weekdays"></div>
+        <div class="grid" id="calendar-grid"></div>
+        <p class="hint" id="edit-hint"></p>
+      </section>
+    </main>
+  </div>
+
+  <!-- ===== Friend color picker modal ===== -->
+  <div id="color-modal" class="modal-backdrop hidden">
+    <div class="modal">
+      <h2>Pick your color</h2>
+      <p class="muted">This color marks the days <b>you</b> win. Green is taken 😉</p>
+      <div class="swatches" id="swatches"></div>
+      <label class="custom-color">Or pick any color: <input type="color" id="custom-color" value="#0a66c2" /></label>
+      <button id="save-color" class="btn primary">Save my color</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
