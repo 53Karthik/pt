@@ -32,7 +32,7 @@ export default async (req) => {
   try {
     const url = new URL(req.url);
     const path = url.pathname.replace(/^\/api\/?/, "");
-    const store = getStore("puzzle-tracker");
+    const store = getStore({ name: "puzzle-tracker", consistency: "strong" });
     const data = await load(store);
     const body = req.method === "POST" ? await req.json().catch(() => ({})) : {};
     const token = req.headers.get("x-token") || "";
