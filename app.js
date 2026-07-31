@@ -32,6 +32,22 @@ const $ = (id) => document.getElementById(id);
 function pad(n) { return String(n).padStart(2, "0"); }
 function dateKey(y, m, d) { return `${y}-${pad(m + 1)}-${pad(d)}`; }
 function todayKey() { const t = new Date(); return dateKey(t.getFullYear(), t.getMonth(), t.getDate()); }
+
+/* Marking deadline: a day stays editable until 12:01 PM (IST) the NEXT day, then locks. */
+const TZ_OFFSET_MIN = 330; // IST (UTC+5:30) — the players' timezone
+const LOCK_HOUR = 12, LOCK_MINUTE = 1;
+function todayKeyTz() {
+  const t = new Date(Date.now() + TZ_OFFSET_MIN * 60000);
+  return dateKey(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate());
+}
+function isLocked(dateStr) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const deadlineUtcMs = Date.UTC(y, m - 1, d + 1, LOCK_HOUR, LOCK_MINUTE) - TZ_OFFSET_MIN * 60000;
+  return Date.now() > deadlineUtcMs;
+}
+function canIEdit() {
+  return S.me.key === "editor" || (S.me.key === "viewer" && !!S.users.viewer.canEdit);
+}
 function currentYM() { const t = new Date(); return { y: t.getFullYear(), m: t.getMonth() }; }
 function ymCompare(a, b) { return a.y !== b.y ? a.y - b.y : a.m - b.m; }
 const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -106,11 +122,20 @@ const Local = {
   async mark(b) {
     const d = this.load();
     const key = this._auth(d);
-    if (key !== "editor") throw new Error("View-only account");
+    if (key !== "editor" && !d.users.viewer.canEdit) throw new Error("View-only account");
     validateMark(b);
     d.marks[b.game] = d.marks[b.game] || {};
     if (b.value === null) delete d.marks[b.game][b.date];
     else d.marks[b.game][b.date] = b.value;
+    this.save(d);
+    return publicState(d, key);
+  },
+
+  async access(b) {
+    const d = this.load();
+    const key = this._auth(d);
+    if (key !== "editor") throw new Error("Only the editor can change access");
+    d.users.viewer.canEdit = !!b.canEdit;
     this.save(d);
     return publicState(d, key);
   },
@@ -156,7 +181,8 @@ function validateMark(b) {
   if (!GAME_KEYS.includes(b.game)) throw new Error("Unknown game");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(b.date)) throw new Error("Bad date");
   if (b.date < "2026-07-01") throw new Error("Calendar starts July 2026");
-  if (b.date > todayKey()) throw new Error("Can't mark future days");
+  if (b.date > todayKeyTz()) throw new Error("Can't mark future days");
+  if (isLocked(b.date)) throw new Error("This day is locked (deadline was 12:01 PM next day)");
   if (![null, "editor", "viewer"].includes(b.value)) throw new Error("Bad value");
 }
 function validatePassword(b) {
@@ -171,7 +197,7 @@ function publicState(d, meKey) {
     me: { key: meKey, name: d.users[meKey].name, color: d.users[meKey].color },
     users: {
       editor: { name: d.users.editor.name, color: d.users.editor.color },
-      viewer: { name: d.users.viewer.name, color: d.users.viewer.color },
+      viewer: { name: d.users.viewer.name, color: d.users.viewer.color, canEdit: !!d.users.viewer.canEdit },
     },
     marks: d.marks,
   };
@@ -229,18 +255,20 @@ function showApp() {
   $("app-screen").classList.remove("hidden");
 
   const isEditor = S.me.key === "editor";
+  const mayEdit = canIEdit();
   const badge = $("role-badge");
-  badge.textContent = isEditor ? `${S.me.name} · editor` : `${S.me.name} · view only`;
-  badge.classList.toggle("viewer", !isEditor);
+  badge.textContent = isEditor ? `${S.me.name} · editor`
+    : mayEdit ? `${S.me.name} · can edit` : `${S.me.name} · view only`;
+  badge.classList.toggle("viewer", !mayEdit);
   $("change-color-btn").classList.toggle("hidden", isEditor);
   $("pass-btn").classList.toggle("hidden", !isEditor);
-  $("edit-hint").textContent = isEditor
-    ? "Tap a day to cycle: blank → your green → friend's color → blank. Blank = draw / not played."
+  $("edit-hint").textContent = mayEdit
+    ? "Tap a day to cycle: blank → green → friend's color → blank. Blank = draw. Days lock at 12:01 PM the next day."
     : "View-only: your friend marks the wins.";
 
   renderAll();
 
-  if (!isEditor && !S.me.color) openColorModal();
+  if (!isEditor && !S.me.color && $("color-modal").classList.contains("hidden")) openColorModal();
 }
 
 function renderAll() {
@@ -288,7 +316,7 @@ function renderCalendar() {
   const first = new Date(y, m, 1).getDay();
   const daysInMonth = new Date(y, m + 1, 0).getDate();
   const tKey = todayKey();
-  const isEditor = S.me.key === "editor";
+  const mayEdit = canIEdit();
   const gameMarks = S.marks[S.game] || {};
 
   const grid = $("calendar-grid");
@@ -312,9 +340,10 @@ function renderCalendar() {
 
     if (key === tKey) cell.classList.add("today");
 
-    const markable = key >= "2026-07-01" && key <= tKey;
-    if (!markable) cell.classList.add("disabled");
-    if (isEditor && markable) {
+    const markable = key >= "2026-07-01" && key <= todayKeyTz() && !isLocked(key);
+    if (key > tKey) cell.classList.add("disabled");
+    if (isLocked(key) && !mark) cell.classList.add("disabled");
+    if (mayEdit && markable) {
       cell.classList.add("clickable");
       cell.addEventListener("click", () => cycleMark(key, mark));
     }
@@ -387,7 +416,21 @@ $("pass-btn").addEventListener("click", () => {
   `;
   $("pass-new").value = "";
   $("pass-err").textContent = "";
+  $("access-toggle").checked = !!S.users.viewer.canEdit;
+  $("access-label").textContent = `Allow ${S.users.viewer.name} to edit the calendars`;
   $("pass-modal").classList.remove("hidden");
+});
+
+$("access-toggle").addEventListener("change", async (e) => {
+  try {
+    const st = await call("access", { canEdit: e.target.checked });
+    applyState(st);
+    renderAll();
+    toast(e.target.checked ? `${S.users.viewer.name} can now edit` : `${S.users.viewer.name} is view-only`);
+  } catch (err) {
+    e.target.checked = !e.target.checked;
+    $("pass-err").textContent = err.message;
+  }
 });
 
 $("pass-cancel").addEventListener("click", () => $("pass-modal").classList.add("hidden"));
@@ -469,7 +512,7 @@ async function refresh() {
   try {
     const st = await call("state");
     applyState(st);
-    renderAll();
+    showApp(); // full re-render so access changes (badge, clickability) apply live
   } catch (e) {
     toast(e.message);
   }

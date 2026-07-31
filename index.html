@@ -50,7 +50,7 @@
       <div class="brand">🏆 Puzzle Duel</div>
       <div class="top-actions">
         <span id="role-badge" class="badge"></span>
-        <button id="pass-btn" class="btn small hidden">Passwords</button>
+        <button id="pass-btn" class="btn small hidden">Accounts</button>
         <button id="change-color-btn" class="btn small hidden">My color</button>
         <button id="refresh-btn" class="btn small" title="Refresh">⟳</button>
         <button id="logout-btn" class="btn small">Log out</button>
@@ -105,8 +105,9 @@
   <!-- ===== Password change modal (editor only) ===== -->
   <div id="pass-modal" class="modal-backdrop hidden">
     <div class="modal">
-      <h2>Change password</h2>
-      <p class="muted">Pick the account and set its new password.</p>
+      <h2>Manage accounts</h2>
+      <label class="access-row"><input type="checkbox" id="access-toggle" /> <span id="access-label">Allow friend to edit</span></label>
+      <p class="muted">Change a password: pick the account and set the new one.</p>
       <div class="modal-form">
         <select id="pass-target"></select>
         <input type="password" id="pass-new" placeholder="New password" autocomplete="new-password" />

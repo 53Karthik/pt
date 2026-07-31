@@ -7,7 +7,16 @@ const GAME_KEYS = ["zip", "pinpoint", "sudoku", "queens", "wend", "patches"];
 const MY_GREEN = "#057642";
 
 const sha256 = (s) => createHash("sha256").update(s).digest("hex");
-const todayKey = () => new Date().toISOString().slice(0, 10);
+
+/* Marking deadline: a day stays editable until 12:01 PM (IST) the NEXT day, then locks. */
+const TZ_OFFSET_MIN = 330; // IST (UTC+5:30) — the players' timezone
+const LOCK_HOUR = 12, LOCK_MINUTE = 1;
+const todayKey = () => new Date(Date.now() + TZ_OFFSET_MIN * 60000).toISOString().slice(0, 10);
+function isLocked(dateStr) {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const deadlineUtcMs = Date.UTC(y, m - 1, d + 1, LOCK_HOUR, LOCK_MINUTE) - TZ_OFFSET_MIN * 60000;
+  return Date.now() > deadlineUtcMs;
+}
 
 async function load(store) {
   return (await store.get("data", { type: "json" })) ||
@@ -19,7 +28,7 @@ function publicState(d, meKey) {
     me: { key: meKey, name: d.users[meKey].name, color: d.users[meKey].color },
     users: {
       editor: { name: d.users.editor.name, color: d.users.editor.color },
-      viewer: { name: d.users.viewer.name, color: d.users.viewer.color },
+      viewer: { name: d.users.viewer.name, color: d.users.viewer.color, canEdit: !!d.users.viewer.canEdit },
     },
     marks: d.marks,
   };
@@ -83,15 +92,23 @@ export default async (req) => {
     }
 
     if (path === "mark" && req.method === "POST") {
-      if (meKey !== "editor") return json({ error: "View-only account" }, 403);
+      if (meKey !== "editor" && !data.users.viewer.canEdit) return json({ error: "View-only account" }, 403);
       if (!GAME_KEYS.includes(body.game)) return json({ error: "Unknown game" }, 400);
       if (!/^\d{4}-\d{2}-\d{2}$/.test(body.date || "")) return json({ error: "Bad date" }, 400);
       if (body.date < "2026-07-01") return json({ error: "Calendar starts July 2026" }, 400);
       if (body.date > todayKey()) return json({ error: "Can't mark future days" }, 400);
+      if (isLocked(body.date)) return json({ error: "This day is locked (deadline was 12:01 PM next day)" }, 400);
       if (![null, "editor", "viewer"].includes(body.value)) return json({ error: "Bad value" }, 400);
       data.marks[body.game] = data.marks[body.game] || {};
       if (body.value === null) delete data.marks[body.game][body.date];
       else data.marks[body.game][body.date] = body.value;
+      await store.setJSON("data", data);
+      return json(publicState(data, meKey));
+    }
+
+    if (path === "access" && req.method === "POST") {
+      if (meKey !== "editor") return json({ error: "Only the editor can change access" }, 403);
+      data.users.viewer.canEdit = !!body.canEdit;
       await store.setJSON("data", data);
       return json(publicState(data, meKey));
     }

@@ -224,6 +224,19 @@ body {
   background: var(--card);
 }
 .modal-form input:focus, .modal-form select:focus { outline: 2px solid var(--green); border-color: transparent; }
+.access-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 14px 0;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.access-row input { width: 16px; height: 16px; accent-color: var(--green); cursor: pointer; }
 
 /* ===== Toast ===== */
 .toast {
