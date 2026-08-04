@@ -130,7 +130,7 @@ body {
 #month-label { font-weight: 600; min-width: 110px; text-align: center; }
 
 /* ===== Scores ===== */
-.scores { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.scores { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px; }
 .score-card {
   background: var(--card);
   border-radius: var(--radius);
@@ -141,11 +141,6 @@ body {
 .score-title { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
 .score-line { font-size: 1.3rem; font-weight: 700; margin-top: 4px; }
 .score-line .vs { color: var(--muted); font-weight: 400; font-size: 0.9rem; margin: 0 6px; }
-
-/* ===== Legend ===== */
-.legend { display: flex; gap: 16px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap; }
-.legend .chip { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; }
-.legend .dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
 
 /* ===== Calendar ===== */
 .calendar-card {

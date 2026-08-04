@@ -274,16 +274,8 @@ function showApp() {
 }
 
 function renderAll() {
-  renderLegend();
   renderScores();
   renderCalendar();
-}
-
-function renderLegend() {
-  $("legend").innerHTML = `
-    <span class="chip"><span class="dot" style="background:${MY_GREEN}"></span>${escapeHtml(S.users.editor.name)}</span>
-    <span class="chip"><span class="dot" style="background:${friendColor()}"></span>${escapeHtml(S.users.viewer.name)}${S.users.viewer.color ? "" : " (default until they pick)"}</span>
-  `;
 }
 
 function countWins(gameKey) {
@@ -301,9 +293,17 @@ function renderScores() {
   );
   const label = GAMES.find((x) => x.key === S.game).label;
   $("score-game-title").textContent = label;
+  const tKey = todayKeyTz();
+  const day = GAME_KEYS.reduce((acc, k) => {
+    const who = (S.marks[k] || {})[tKey];
+    if (who === "editor") acc.e++;
+    else if (who === "viewer") acc.v++;
+    return acc;
+  }, { e: 0, v: 0 });
   const line = (c) =>
     `<span style="color:${MY_GREEN}">${c.e}</span><span class="vs">vs</span><span style="color:${friendColor()}">${c.v}</span>`;
   $("score-game").innerHTML = line(g);
+  $("score-today").innerHTML = line(day);
   $("score-total").innerHTML = line(total);
 }
 
