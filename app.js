@@ -5,7 +5,6 @@ const GAMES = [
   { key: "pinpoint", label: "Pinpoint" },
   { key: "sudoku", label: "Mini Sudoku" },
   { key: "queens", label: "Queens" },
-  { key: "wend", label: "Wend" },
   { key: "patches", label: "Patches" },
 ];
 const GAME_KEYS = GAMES.map((g) => g.key);
@@ -123,7 +122,7 @@ const Local = {
     const d = this.load();
     const key = this._auth(d);
     if (key !== "editor" && !d.users.viewer.canEdit) throw new Error("View-only account");
-    validateMark(b);
+    validateMark(b, key);
     d.marks[b.game] = d.marks[b.game] || {};
     if (b.value === null) delete d.marks[b.game][b.date];
     else d.marks[b.game][b.date] = b.value;
@@ -177,12 +176,13 @@ function validateSetup(b) {
   if (b.ownerName.trim().toLowerCase() === b.friendName.trim().toLowerCase())
     throw new Error("Names must be different");
 }
-function validateMark(b) {
+function validateMark(b, meKey) {
   if (!GAME_KEYS.includes(b.game)) throw new Error("Unknown game");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(b.date)) throw new Error("Bad date");
   if (b.date < "2026-07-01") throw new Error("Calendar starts July 2026");
   if (b.date > todayKeyTz()) throw new Error("Can't mark future days");
-  if (isLocked(b.date)) throw new Error("This day is locked (deadline was 12:01 PM next day)");
+  // the lock binds the friend; the owner-editor can always correct locked days
+  if (isLocked(b.date) && meKey !== "editor") throw new Error("This day is locked (deadline was 12:01 PM next day)");
   if (![null, "editor", "viewer"].includes(b.value)) throw new Error("Bad value");
 }
 function validatePassword(b) {
@@ -262,8 +262,10 @@ function showApp() {
   badge.classList.toggle("viewer", !mayEdit);
   $("change-color-btn").classList.toggle("hidden", isEditor);
   $("pass-btn").classList.toggle("hidden", !isEditor);
-  $("edit-hint").textContent = mayEdit
-    ? "Tap a day to cycle: blank → green → friend's color → blank. Blank = draw. Days lock at 12:01 PM the next day."
+  $("edit-hint").textContent = isEditor
+    ? "Tap a day to cycle: blank → green → friend's color → blank. Blank = draw."
+    : mayEdit
+    ? "Tap a day to cycle: blank → green → friend's color → blank. Days lock at 12:01 PM the next day."
     : "View-only: your friend marks the wins.";
 
   renderAll();
@@ -300,7 +302,7 @@ function renderScores() {
   const label = GAMES.find((x) => x.key === S.game).label;
   $("score-game-title").textContent = label;
   const line = (c) =>
-    `<span style="color:${MY_GREEN}">${escapeHtml(S.users.editor.name)} ${c.e}</span><span class="vs">vs</span><span style="color:${friendColor()}">${c.v} ${escapeHtml(S.users.viewer.name)}</span>`;
+    `<span style="color:${MY_GREEN}">${c.e}</span><span class="vs">vs</span><span style="color:${friendColor()}">${c.v}</span>`;
   $("score-game").innerHTML = line(g);
   $("score-total").innerHTML = line(total);
 }
@@ -340,9 +342,10 @@ function renderCalendar() {
 
     if (key === tKey) cell.classList.add("today");
 
-    const markable = key >= "2026-07-01" && key <= todayKeyTz() && !isLocked(key);
+    const lockedForMe = isLocked(key) && S.me.key !== "editor";
+    const markable = key >= "2026-07-01" && key <= todayKeyTz() && !lockedForMe;
     if (key > tKey) cell.classList.add("disabled");
-    if (isLocked(key) && !mark) cell.classList.add("disabled");
+    if (lockedForMe && !mark) cell.classList.add("disabled");
     if (mayEdit && markable) {
       cell.classList.add("clickable");
       cell.addEventListener("click", () => cycleMark(key, mark));

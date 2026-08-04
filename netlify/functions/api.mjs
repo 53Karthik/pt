@@ -3,7 +3,7 @@ import { randomUUID, createHash } from "node:crypto";
 
 export const config = { path: "/api/*" };
 
-const GAME_KEYS = ["zip", "pinpoint", "sudoku", "queens", "wend", "patches"];
+const GAME_KEYS = ["zip", "pinpoint", "sudoku", "queens", "patches"];
 const MY_GREEN = "#057642";
 
 const sha256 = (s) => createHash("sha256").update(s).digest("hex");
@@ -97,7 +97,8 @@ export default async (req) => {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(body.date || "")) return json({ error: "Bad date" }, 400);
       if (body.date < "2026-07-01") return json({ error: "Calendar starts July 2026" }, 400);
       if (body.date > todayKey()) return json({ error: "Can't mark future days" }, 400);
-      if (isLocked(body.date)) return json({ error: "This day is locked (deadline was 12:01 PM next day)" }, 400);
+      // the lock binds the friend; the owner-editor can always correct locked days
+      if (isLocked(body.date) && meKey !== "editor") return json({ error: "This day is locked (deadline was 12:01 PM next day)" }, 400);
       if (![null, "editor", "viewer"].includes(body.value)) return json({ error: "Bad value" }, 400);
       data.marks[body.game] = data.marks[body.game] || {};
       if (body.value === null) delete data.marks[body.game][body.date];

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Puzzle Duel Calendar</title>
+  <title>Calendar</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -12,7 +12,6 @@
   <div id="auth-screen" class="auth-wrap hidden">
 
     <div class="auth-card" id="setup-card">
-      <h1>🏆 Puzzle Duel</h1>
       <p class="muted">First-time setup — create the two accounts. You are the <b>editor</b>, your friend is the <b>viewer</b>.</p>
       <form id="setup-form">
         <fieldset>
@@ -31,7 +30,6 @@
     </div>
 
     <div class="auth-card hidden" id="login-card">
-      <h1>🏆 Puzzle Duel</h1>
       <p class="muted">Log in to see the calendars.</p>
       <form id="login-form">
         <input id="li-name" placeholder="Name" required autocomplete="username" />
@@ -47,7 +45,6 @@
   <!-- ===== Main app ===== -->
   <div id="app-screen" class="hidden">
     <header class="topbar">
-      <div class="brand">🏆 Puzzle Duel</div>
       <div class="top-actions">
         <span id="role-badge" class="badge"></span>
         <button id="pass-btn" class="btn small hidden">Accounts</button>
@@ -76,7 +73,7 @@
           <div class="score-line" id="score-game"></div>
         </div>
         <div class="score-card">
-          <div class="score-title">Overall (all 6 games)</div>
+          <div class="score-title">Overall</div>
           <div class="score-line" id="score-total"></div>
         </div>
       </section>

@@ -88,13 +88,12 @@ body {
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 10px 20px;
   position: sticky;
   top: 0;
   z-index: 5;
 }
-.brand { font-weight: 700; font-size: 1.1rem; }
 .top-actions { display: flex; align-items: center; gap: 8px; }
 .badge {
   font-size: 0.75rem;

@@ -1,8 +1,8 @@
-# 🏆 Puzzle Duel Calendar
+# LinkedIn Puzzle Win Calendar
 
-Track who wins the daily LinkedIn puzzles — **Zip, Pinpoint, Mini Sudoku, Queens, Wend, Patches** — you vs your friend.
+Track who wins the daily LinkedIn puzzles — **Zip, Pinpoint, Mini Sudoku, Queens, Patches** — you vs your friend.
 
-- 6 calendars (one per game) behind a dropdown, starting **July 2026**
+- 5 calendars (one per game) behind a dropdown, starting **July 2026**
 - One winner per game per day: blank → **your green** → friend's color → blank (blank = draw)
 - Per-game score + overall score across all 6 games
 - Simple RBAC: **you = editor** (mark wins), **friend = viewer** (look, don't touch)
