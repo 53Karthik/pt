@@ -183,7 +183,7 @@ function validateMark(b, meKey) {
   if (b.date > todayKeyTz()) throw new Error("Can't mark future days");
   // the lock binds the friend; the owner-editor can always correct locked days
   if (isLocked(b.date) && meKey !== "editor") throw new Error("This day is locked (deadline was 12:01 PM next day)");
-  if (![null, "editor", "viewer"].includes(b.value)) throw new Error("Bad value");
+  if (![null, "editor", "viewer","draw"].includes(b.value)) throw new Error("Bad value");
 }
 function validatePassword(b) {
   if (!["editor", "viewer"].includes(b.target)) throw new Error("Bad target");
