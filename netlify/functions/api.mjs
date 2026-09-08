@@ -99,7 +99,7 @@ export default async (req) => {
       if (body.date > todayKey()) return json({ error: "Can't mark future days" }, 400);
       // the lock binds the friend; the owner-editor can always correct locked days
       if (isLocked(body.date) && meKey !== "editor") return json({ error: "This day is locked (deadline was 12:01 PM next day)" }, 400);
-      if (![null, "editor", "viewer"].includes(body.value)) return json({ error: "Bad value" }, 400);
+      if (![null, "editor", "viewer","draw"].includes(body.value)) return json({ error: "Bad value" }, 400);
       data.marks[body.game] = data.marks[body.game] || {};
       if (body.value === null) delete data.marks[body.game][body.date];
       else data.marks[body.game][body.date] = body.value;
