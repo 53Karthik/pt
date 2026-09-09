@@ -365,9 +365,18 @@ else if (mark === "draw") {
 }
 
 async function cycleMark(dateStr, current) {
-  const next = current === undefined ? "editor" : current === "editor" ? "viewer" ? "draw" : null;
+  const next =
+    current === undefined ? "editor" :
+    current === "editor" ? "viewer" :
+    current === "viewer" ? "draw" :
+    null;
+
   try {
-    const st = await call("mark", { game: S.game, date: dateStr, value: next });
+    const st = await call("mark", {
+      game: S.game,
+      date: dateStr,
+      value: next
+    });
     applyState(st);
     renderAll();
   } catch (e) {
