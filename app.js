@@ -340,15 +340,13 @@ function renderCalendar() {
     if (mark === "editor") {
   cell.classList.add("won");
   cell.style.background = MY_GREEN;
-}
-else if (mark === "viewer") {
+} else if (mark === "viewer") {
   cell.classList.add("won");
   cell.style.background = friendColor();
-}
-else if (mark === "draw") {
+} else if (mark === "draw") {
   cell.classList.add("won");
   cell.style.background = "#808080";
-}classList.add("won"); cell.style.background = friendColor(); }
+}
 
     if (key === tKey) cell.classList.add("today");
 
