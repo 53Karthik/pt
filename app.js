@@ -263,7 +263,7 @@ function showApp() {
   $("change-color-btn").classList.toggle("hidden", isEditor);
   $("pass-btn").classList.toggle("hidden", !isEditor);
   $("edit-hint").textContent = isEditor
-    ? "Tap a day to cycle: blank → green → friend's color → blank. Blank = draw."
+    ? "Tap a day to cycle: blank → green → friend's color → blank. Grey = draw."
     : mayEdit
     ? "Tap a day to cycle: blank → green → friend's color → blank. Days lock at 12:01 PM the next day."
     : "View-only: your friend marks the wins.";
